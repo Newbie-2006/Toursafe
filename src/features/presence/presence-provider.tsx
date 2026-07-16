@@ -10,6 +10,8 @@ import {
   useState,
 } from "react";
 import type { LatLng, TouristPresence } from "@/types";
+import { useConfig } from "@/features/config/config-provider";
+import { getSupabase } from "@/lib/supabase";
 
 /**
  * Live tourist presence bus.
@@ -68,6 +70,42 @@ function prune(map: PresenceMap): PresenceMap {
   return out;
 }
 
+/* ---------- Supabase mirror (optional; no-ops when unconfigured) ---------- */
+
+interface PresenceRow {
+  tourist_id: string;
+  name: string;
+  nationality: string | null;
+  lat: number;
+  lng: number;
+  safety_score: number | null;
+  last_seen: string;
+}
+
+function presenceToRow(p: TouristPresence): PresenceRow {
+  return {
+    tourist_id: p.touristId,
+    name: p.name,
+    nationality: p.nationality ?? null,
+    lat: p.location.lat,
+    lng: p.location.lng,
+    safety_score: p.safetyScore ?? null,
+    last_seen: new Date(p.lastSeen).toISOString(),
+  };
+}
+
+function rowToPresence(r: PresenceRow): TouristPresence {
+  return {
+    id: r.tourist_id,
+    touristId: r.tourist_id,
+    name: r.name,
+    nationality: r.nationality ?? undefined,
+    location: { lat: r.lat, lng: r.lng },
+    safetyScore: r.safety_score ?? undefined,
+    lastSeen: new Date(r.last_seen).getTime(),
+  };
+}
+
 /* ---------- simulated-tourist helpers (officer drill only) ---------- */
 
 const SIM_NAMES = [
@@ -103,6 +141,7 @@ function driftAgent(a: TouristPresence): TouristPresence {
 }
 
 export function PresenceProvider({ children }: { children: React.ReactNode }) {
+  const { supabaseReady } = useConfig();
   const [map, setMap] = useState<PresenceMap>({});
   const [nowTick, setNowTick] = useState(0);
   const [simulatedCount, setSimulatedCount] = useState(0);
@@ -147,6 +186,44 @@ export function PresenceProvider({ children }: { children: React.ReactNode }) {
     return () => window.clearInterval(id);
   }, []);
 
+  // Optional Supabase realtime: pull remote presence + subscribe to changes so
+  // a tourist on another DEVICE shows up on the police map/density.
+  useEffect(() => {
+    if (!supabaseReady) return;
+    const sb = getSupabase();
+    if (!sb) return;
+    let active = true;
+
+    const refetch = async () => {
+      try {
+        const { data } = await sb.from("tourist_presence").select("*");
+        if (!active || !data) return;
+        setMap((prev) => {
+          const next = { ...prev };
+          for (const r of data as PresenceRow[]) next[r.tourist_id] = rowToPresence(r);
+          return next;
+        });
+      } catch {
+        /* table may not exist yet — stay on local */
+      }
+    };
+
+    refetch();
+    const channel = sb
+      .channel("toursafe-presence-db")
+      .on("postgres_changes", { event: "*", schema: "public", table: "tourist_presence" }, refetch)
+      .subscribe();
+
+    return () => {
+      active = false;
+      try {
+        sb.removeChannel(channel);
+      } catch {
+        /* ignore */
+      }
+    };
+  }, [supabaseReady]);
+
   const heartbeat = useCallback<PresenceContextValue["heartbeat"]>((p) => {
     const presence: TouristPresence = { ...p, lastSeen: Date.now() };
     setMap((prev) => ({ ...prev, [presence.id]: presence }));
@@ -154,19 +231,35 @@ export function PresenceProvider({ children }: { children: React.ReactNode }) {
     store[presence.id] = presence;
     writeStore(store);
     chanRef.current?.postMessage({ type: "beat", presence } satisfies Msg);
+    // Best-effort cross-device mirror (real tourists only; drills stay local).
+    if (!presence.simulated) {
+      const sb = getSupabase();
+      sb?.from("tourist_presence").upsert(presenceToRow(presence)).then(
+        () => undefined,
+        () => undefined,
+      );
+    }
   }, []);
 
   const leave = useCallback<PresenceContextValue["leave"]>((id) => {
+    let touristId = id;
     setMap((prev) => {
       if (!prev[id]) return prev;
+      touristId = prev[id].touristId;
       const next = { ...prev };
       delete next[id];
       return next;
     });
     const store = loadStore();
+    if (store[id]) touristId = store[id].touristId;
     delete store[id];
     writeStore(store);
     chanRef.current?.postMessage({ type: "leave", id } satisfies Msg);
+    const sb = getSupabase();
+    sb?.from("tourist_presence").delete().eq("tourist_id", touristId).then(
+      () => undefined,
+      () => undefined,
+    );
   }, []);
 
   const clearSimulated = useCallback(() => {

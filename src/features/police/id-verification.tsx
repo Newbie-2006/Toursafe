@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { listIssuedIds, lookupIssuedId, type IssuedIdRecord } from "@/lib/identity";
+import { getSupabase } from "@/lib/supabase";
 
 interface VerifiedResult {
   touristId: string;
@@ -30,55 +31,107 @@ function fromRecord(rec: IssuedIdRecord): VerifiedResult {
   };
 }
 
+interface DigitalIdRow {
+  tourist_id: string;
+  full_name: string;
+  nationality: string | null;
+  passport_no: string | null;
+  blood_group: string | null;
+  verified: boolean | null;
+}
+
+/** Cross-device lookup against the Supabase digital_ids registry (if configured). */
+async function lookupSupabase(
+  sb: NonNullable<ReturnType<typeof getSupabase>>,
+  code: string,
+): Promise<VerifiedResult | null> {
+  try {
+    const byId = await sb.from("digital_ids").select("*").eq("tourist_id", code).limit(1);
+    let row = (byId.data as DigitalIdRow[] | null)?.[0];
+    if (!row) {
+      const byPass = await sb.from("digital_ids").select("*").eq("passport_no", code).limit(1);
+      row = (byPass.data as DigitalIdRow[] | null)?.[0];
+    }
+    if (!row) return null;
+    return {
+      touristId: row.tourist_id,
+      name: row.full_name,
+      nationality: row.nationality ?? "—",
+      passport: row.passport_no ?? "—",
+      bloodGroup: row.blood_group ?? "—",
+      verified: Boolean(row.verified),
+      source: "registry",
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function IdVerification() {
   const { t } = useI18n();
   const [code, setCode] = React.useState("");
   const [result, setResult] = React.useState<VerifiedResult | null>(null);
   const [notFound, setNotFound] = React.useState(false);
 
-  const verify = (raw: string) => {
+  const verify = async (raw: string) => {
     setNotFound(false);
     const value = raw.trim();
     if (!value) return;
 
-    // 1) A scanned QR payload (JSON from the tourist's Digital ID).
+    // Collect candidate identifiers: from a scanned QR payload, or the raw text.
+    const candidates: string[] = [];
+    let qr: {
+      id?: string;
+      name?: string;
+      nationality?: string;
+      passport?: string;
+      bloodGroup?: string;
+      verified?: boolean;
+    } | null = null;
     try {
-      const parsed = JSON.parse(value) as {
-        id?: string;
-        name?: string;
-        nationality?: string;
-        passport?: string;
-        bloodGroup?: string;
-        verified?: boolean;
-      };
+      const parsed = JSON.parse(value);
       if (parsed && (parsed.id || parsed.passport)) {
-        const rec = lookupIssuedId(parsed.id ?? "") ?? lookupIssuedId(parsed.passport ?? "");
+        qr = parsed;
+        if (parsed.id) candidates.push(parsed.id);
+        if (parsed.passport) candidates.push(parsed.passport);
+      }
+    } catch {
+      /* not JSON */
+    }
+    if (candidates.length === 0) candidates.push(value);
+
+    // 1) Local issued-ID registry (this device).
+    for (const c of candidates) {
+      const rec = lookupIssuedId(c);
+      if (rec) {
+        setResult(fromRecord(rec));
+        return;
+      }
+    }
+
+    // 2) Supabase registry (cross-device), when configured.
+    const sb = getSupabase();
+    if (sb) {
+      for (const c of candidates) {
+        const rec = await lookupSupabase(sb, c);
         if (rec) {
-          setResult(fromRecord(rec));
-          return;
-        }
-        if (parsed.name && parsed.passport) {
-          // Self-describing QR that isn't in this device's registry.
-          setResult({
-            touristId: parsed.id ?? "—",
-            name: parsed.name,
-            nationality: parsed.nationality ?? "—",
-            passport: parsed.passport,
-            bloodGroup: parsed.bloodGroup ?? "—",
-            verified: Boolean(parsed.verified),
-            source: "signed-qr",
-          });
+          setResult(rec);
           return;
         }
       }
-    } catch {
-      /* not JSON — fall through to a direct lookup */
     }
 
-    // 2) A typed Tourist ID or passport number.
-    const rec = lookupIssuedId(value);
-    if (rec) {
-      setResult(fromRecord(rec));
+    // 3) A self-describing signed QR not present in any registry.
+    if (qr?.name && qr?.passport) {
+      setResult({
+        touristId: qr.id ?? "—",
+        name: qr.name,
+        nationality: qr.nationality ?? "—",
+        passport: qr.passport,
+        bloodGroup: qr.bloodGroup ?? "—",
+        verified: Boolean(qr.verified),
+        source: "signed-qr",
+      });
       return;
     }
 

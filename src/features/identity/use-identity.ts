@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DigitalIdentity } from "@/types";
 import { generateIdentity, registerIssuedId } from "@/lib/identity";
 import { useAuth, type Session } from "@/features/auth/auth-provider";
+import { getSupabase } from "@/lib/supabase";
 
 const PREFIX = "toursafe.identity.v2:";
 const EVENT = "toursafe:identity-changed";
@@ -24,6 +25,33 @@ function baseIdentity(seed: string, session: Session | null): DigitalIdentity {
     name: session?.name ?? "Traveler",
     guest: session?.guest,
   });
+}
+
+/** Best-effort mirror of the issued ID to Supabase (no-op when unconfigured). */
+function mirrorIdentity(identity: DigitalIdentity): void {
+  const sb = getSupabase();
+  if (!sb) return;
+  sb.from("digital_ids")
+    .upsert({
+      tourist_id: identity.touristId,
+      full_name: identity.fullName,
+      nationality: identity.nationality,
+      passport_no: identity.passportNo,
+      visa_no: identity.visaNo,
+      blood_group: identity.bloodGroup,
+      insurance_provider: identity.insuranceProvider,
+      insurance_no: identity.insuranceNo,
+      emergency_contact_name: identity.emergencyContactName || null,
+      emergency_contact_phone: identity.emergencyContactPhone || null,
+      verified: identity.verified,
+      issued_at: identity.issuedAt,
+      expires_at: identity.expiresAt,
+      updated_at: new Date().toISOString(),
+    })
+    .then(
+      () => undefined,
+      () => undefined,
+    );
 }
 
 /** Load this account's stored identity, or mint + persist a fresh unique one. */
@@ -57,6 +85,7 @@ export function useIdentity() {
     const id = loadOrCreate(seed, session);
     setIdentity(id);
     registerIssuedId(id);
+    if (session) mirrorIdentity(id);
     const onChange = () => setIdentity(loadOrCreate(seed, session));
     window.addEventListener(EVENT, onChange);
     window.addEventListener("storage", onChange);
@@ -73,6 +102,7 @@ export function useIdentity() {
       const next = { ...loadOrCreate(seed, session), ...patch };
       window.localStorage.setItem(storageKey(seed), JSON.stringify(next));
       registerIssuedId(next);
+      mirrorIdentity(next);
       window.dispatchEvent(new CustomEvent(EVENT));
       setIdentity(next);
     },
