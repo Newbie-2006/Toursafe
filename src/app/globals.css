@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  TourSafe design tokens.
+  Light + handcrafted dark theme. Colors mirror the brand spec exactly,
+  converted from HEX to HSL so Tailwind can apply opacity modifiers.
+*/
+
+@layer base {
+  :root {
+    --background: 60 10% 97%;        /* #F8F8F6 */
+    --foreground: 225 6% 13%;        /* #202124 */
+
+    --card: 0 0% 100%;               /* #FFFFFF */
+    --card-foreground: 225 6% 13%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 6% 13%;
+
+    --primary: 163 40% 30%;          /* #2E6B5A */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 144 23% 75%;        /* #AFCDBB */
+    --secondary-foreground: 163 45% 18%;
+
+    --accent: 155 23% 56%;           /* #74A892 */
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 60 10% 94%;
+    --muted-foreground: 220 9% 46%;  /* #6B7280 */
+
+    --success: 140 40% 47%;          /* #48A868 */
+    --success-foreground: 0 0% 100%;
+
+    --warning: 39 87% 62%;           /* #F2B84B */
+    --warning-foreground: 30 40% 15%;
+
+    --danger: 0 69% 61%;             /* #E05656 */
+    --danger-foreground: 0 0% 100%;
+
+    --border: 0 0% 91%;              /* #E8E8E8 */
+    --input: 0 0% 89%;
+    --ring: 163 40% 30%;
+
+    --radius: 1.25rem;
+  }
+
+  .dark {
+    --background: 222 16% 7%;        /* #0F1115 */
+    --foreground: 0 0% 97%;          /* #F7F7F7 */
+
+    --card: 222 17% 11%;             /* #181B22 */
+    --card-foreground: 0 0% 97%;
+
+    --popover: 222 17% 11%;
+    --popover-foreground: 0 0% 97%;
+
+    --primary: 155 55% 62%;          /* #69D3A7 */
+    --primary-foreground: 222 30% 9%;
+
+    --secondary: 165 28% 29%;        /* #355E54 */
+    --secondary-foreground: 0 0% 97%;
+
+    --accent: 165 38% 66%;           /* #87C9B8 */
+    --accent-foreground: 222 30% 9%;
+
+    --muted: 222 14% 16%;
+    --muted-foreground: 218 11% 65%; /* #9CA3AF */
+
+    --success: 152 52% 55%;
+    --success-foreground: 222 30% 9%;
+
+    --warning: 40 90% 70%;           /* #F7C96D */
+    --warning-foreground: 30 40% 12%;
+
+    --danger: 0 100% 71%;            /* #FF6B6B */
+    --danger-foreground: 222 30% 9%;
+
+    --border: 218 12% 19%;           /* #2A2E35 */
+    --input: 218 12% 22%;
+    --ring: 155 55% 62%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: normal;
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.2);
+  }
+}
+
+@layer components {
+  /* Frosted glass surface used sparingly in nav + overlays */
+  .glass {
+    @apply bg-card/70 backdrop-blur-xl backdrop-saturate-150 border border-border/60;
+  }
+  /* Soft modular card — the workhorse surface */
+  .card-soft {
+    @apply rounded-3xl bg-card border border-border/70 shadow-soft;
+  }
+  .card-hover {
+    @apply transition-all duration-200 ease-out hover:shadow-soft-lg hover:-translate-y-0.5;
+  }
+  /* Section label — editorial */
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground;
+  }
+  .focus-ring {
+    @apply outline-none ring-offset-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-ring;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .bg-grid {
+    background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+/* Custom scrollbar for the polished feel */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.25);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+  background-clip: content-box;
+}
