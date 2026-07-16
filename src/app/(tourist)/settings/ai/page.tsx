@@ -26,6 +26,7 @@ import { GEMINI_MODELS, maskKey } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
 type Status = "idle" | "testing" | "connected" | "disconnected" | "invalid";
+type ModelOption = { id: string; label: string };
 
 export default function AiConfigPage() {
   const { t } = useI18n();
@@ -36,12 +37,44 @@ export default function AiConfigPage() {
   const [model, setModel] = React.useState(config.gemini.model);
   const [show, setShow] = React.useState(false);
   const [status, setStatus] = React.useState<Status>("idle");
+  const [models, setModels] = React.useState<ModelOption[]>(() => [...GEMINI_MODELS]);
+  const [modelsSource, setModelsSource] = React.useState<"static" | "live">("static");
 
   React.useEffect(() => {
     setApiKey(config.gemini.apiKey);
     setModel(config.gemini.model);
     setStatus(config.gemini.apiKey ? "idle" : "disconnected");
   }, [config.gemini.apiKey, config.gemini.model]);
+
+  // Detect the models actually available to this key so the dropdown never goes
+  // stale; silently falls back to the static list on any error.
+  const fetchModels = React.useCallback(async (key: string) => {
+    if (!key.trim()) return;
+    try {
+      const res = await fetch("/api/ai/models", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ apiKey: key.trim() }),
+      });
+      const data = (await res.json()) as { ok: boolean; models?: ModelOption[] };
+      if (data.ok && data.models && data.models.length > 0) {
+        setModels(data.models);
+        setModelsSource("live");
+        setModel((cur) => (data.models!.some((m) => m.id === cur) ? cur : data.models![0].id));
+      }
+    } catch {
+      /* keep static fallback */
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (config.gemini.apiKey) fetchModels(config.gemini.apiKey);
+  }, [config.gemini.apiKey, fetchModels]);
+
+  // Always keep the currently-selected model selectable, even if not in the list.
+  const modelOptions = models.some((m) => m.id === model)
+    ? models
+    : [{ id: model, label: model }, ...models];
 
   const onSave = () => {
     update({ gemini: { apiKey: apiKey.trim(), model } });
@@ -69,6 +102,7 @@ export default function AiConfigPage() {
       });
       const data = (await res.json()) as { ok: boolean; status: Status; error?: string };
       setStatus(data.ok ? "connected" : data.status === "invalid" ? "invalid" : "disconnected");
+      if (data.ok) fetchModels(apiKey);
       toast({
         variant: data.ok ? "success" : "danger",
         title: data.ok ? t("common.connected") : t("common.disconnected"),
@@ -102,12 +136,18 @@ export default function AiConfigPage() {
           <div className="space-y-1.5">
             <Label htmlFor="model">{t("settings.model")}</Label>
             <Select id="model" value={model} onChange={(e) => setModel(e.target.value)}>
-              {GEMINI_MODELS.map((m) => (
+              {modelOptions.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.label}
                 </option>
               ))}
             </Select>
+            {modelsSource === "live" && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CheckCircle2 className="size-3 text-success" />
+                {modelOptions.length} models detected for your key
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">

@@ -1,18 +1,33 @@
 "use client";
 
 import * as React from "react";
-import { BadgeCheck, Fingerprint, ScanLine, XCircle } from "lucide-react";
+import { BadgeCheck, Fingerprint, ScanLine, ShieldAlert, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/features/i18n/i18n-provider";
-import { DEFAULT_IDENTITY } from "@/lib/demo-data";
+import { listIssuedIds, lookupIssuedId, type IssuedIdRecord } from "@/lib/identity";
 
 interface VerifiedResult {
+  touristId: string;
   name: string;
   nationality: string;
   passport: string;
+  bloodGroup: string;
   verified: boolean;
+  source: "registry" | "signed-qr";
+}
+
+function fromRecord(rec: IssuedIdRecord): VerifiedResult {
+  return {
+    touristId: rec.touristId,
+    name: rec.name,
+    nationality: rec.nationality,
+    passport: rec.passport,
+    bloodGroup: rec.bloodGroup,
+    verified: rec.verified,
+    source: "registry",
+  };
 }
 
 export function IdVerification() {
@@ -25,32 +40,62 @@ export function IdVerification() {
     setNotFound(false);
     const value = raw.trim();
     if (!value) return;
-    // Accept a scanned JSON payload or the known demo ID.
+
+    // 1) A scanned QR payload (JSON from the tourist's Digital ID).
     try {
-      const parsed = JSON.parse(value) as Partial<VerifiedResult>;
-      if (parsed.name && parsed.passport) {
-        setResult({
-          name: parsed.name,
-          nationality: parsed.nationality ?? "—",
-          passport: parsed.passport,
-          verified: parsed.verified ?? true,
-        });
-        return;
+      const parsed = JSON.parse(value) as {
+        id?: string;
+        name?: string;
+        nationality?: string;
+        passport?: string;
+        bloodGroup?: string;
+        verified?: boolean;
+      };
+      if (parsed && (parsed.id || parsed.passport)) {
+        const rec = lookupIssuedId(parsed.id ?? "") ?? lookupIssuedId(parsed.passport ?? "");
+        if (rec) {
+          setResult(fromRecord(rec));
+          return;
+        }
+        if (parsed.name && parsed.passport) {
+          // Self-describing QR that isn't in this device's registry.
+          setResult({
+            touristId: parsed.id ?? "—",
+            name: parsed.name,
+            nationality: parsed.nationality ?? "—",
+            passport: parsed.passport,
+            bloodGroup: parsed.bloodGroup ?? "—",
+            verified: Boolean(parsed.verified),
+            source: "signed-qr",
+          });
+          return;
+        }
       }
     } catch {
-      /* not JSON — try id match */
+      /* not JSON — fall through to a direct lookup */
     }
-    if (value.toUpperCase() === "TS-IN-4820" || value === DEFAULT_IDENTITY.passportNo) {
-      setResult({
-        name: DEFAULT_IDENTITY.fullName,
-        nationality: DEFAULT_IDENTITY.nationality,
-        passport: DEFAULT_IDENTITY.passportNo,
-        verified: true,
-      });
-    } else {
+
+    // 2) A typed Tourist ID or passport number.
+    const rec = lookupIssuedId(value);
+    if (rec) {
+      setResult(fromRecord(rec));
+      return;
+    }
+
+    setResult(null);
+    setNotFound(true);
+  };
+
+  const verifyFirstIssued = () => {
+    const [first] = listIssuedIds();
+    if (!first) {
       setResult(null);
       setNotFound(true);
+      setCode("");
+      return;
     }
+    setCode(first.touristId);
+    verify(first.touristId);
   };
 
   return (
@@ -73,25 +118,26 @@ export function IdVerification() {
         </Button>
       </div>
       <button
-        onClick={() => {
-          setCode("TS-IN-4820");
-          verify("TS-IN-4820");
-        }}
+        onClick={verifyFirstIssued}
         className="mt-2 text-xs font-medium text-primary hover:underline"
       >
-        Verify sample tourist ID
+        Verify a registered tourist
       </button>
 
       {result && (
         <div className="mt-4 animate-fade-in rounded-2xl border border-success/30 bg-success/5 p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold">{result.name}</p>
-            <Badge variant="success">
+            <Badge variant={result.verified ? "success" : "warning"}>
               <BadgeCheck className="size-3.5" />
-              {t("id.verified")}
+              {result.verified ? t("id.verified") : t("id.unverified")}
             </Badge>
           </div>
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <p className="text-muted-foreground">TourSafe ID</p>
+              <p className="font-mono font-medium">{result.touristId}</p>
+            </div>
             <div>
               <p className="text-muted-foreground">{t("id.nationality")}</p>
               <p className="font-medium">{result.nationality}</p>
@@ -100,7 +146,17 @@ export function IdVerification() {
               <p className="text-muted-foreground">{t("id.passport")}</p>
               <p className="font-mono font-medium">{result.passport}</p>
             </div>
+            <div>
+              <p className="text-muted-foreground">{t("id.bloodGroup")}</p>
+              <p className="font-medium">{result.bloodGroup}</p>
+            </div>
           </div>
+          {result.source === "signed-qr" && (
+            <p className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground">
+              <ShieldAlert className="size-3" />
+              Verified from signed QR (not in this station&apos;s registry).
+            </p>
+          )}
         </div>
       )}
 

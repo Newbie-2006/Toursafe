@@ -180,6 +180,7 @@ export const kn: Partial<Record<TranslationKey, string>> = {
   "police.openIncidents": "ತೆರೆದ ಘಟನೆಗಳು",
   "police.officersAvailable": "ಲಭ್ಯವಿರುವ ಅಧಿಕಾರಿಗಳು",
   "police.avgResponse": "ಸರಾಸರಿ ಪ್ರತಿಕ್ರಿಯೆ",
+  "police.activeTourists": "ಸಕ್ರಿಯ ಪ್ರವಾಸಿಗರು",
   "police.backToTourist": "ಪ್ರವಾಸಿ ಆ್ಯಪ್",
 
   "landing.hero": "ಎಲ್ಲಿಯಾದರೂ ಪ್ರಯಾಣಿಸಿ. ಎಲ್ಲೆಡೆ ಸುರಕ್ಷಿತವಾಗಿರಿ.",

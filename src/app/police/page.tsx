@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, ClipboardList, ShieldAlert, Users } from "lucide-react";
+import { Navigation, ClipboardList, ShieldAlert, Users } from "lucide-react";
 import { PoliceTopBar } from "@/features/police/police-topbar";
 import { SosQueue } from "@/features/police/sos-queue";
 import { IncidentQueue } from "@/features/police/incident-queue";
@@ -11,6 +11,7 @@ import { TranslationCenter } from "@/features/police/translation-center";
 import { IdVerification } from "@/features/police/id-verification";
 import { SafetyMap } from "@/features/map/safety-map";
 import { useData } from "@/features/data/data-provider";
+import { usePresence } from "@/features/presence/presence-provider";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { useGeolocation } from "@/features/location/use-geolocation";
 import { poisAround, zonesAround } from "@/lib/demo-data";
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 export default function PoliceCommandCenter() {
   const { t } = useI18n();
   const { sos, incidents, officers } = useData();
+  const { tourists } = usePresence();
   const { position } = useGeolocation();
 
   const activeSos = sos.filter((s) => s.status === "active").length;
@@ -29,7 +31,7 @@ export default function PoliceCommandCenter() {
     { icon: ShieldAlert, label: t("police.activeSos"), value: activeSos, tint: "text-danger", bg: "bg-danger/12" },
     { icon: ClipboardList, label: t("police.openIncidents"), value: openIncidents, tint: "text-warning", bg: "bg-warning/12" },
     { icon: Users, label: t("police.officersAvailable"), value: available, tint: "text-primary", bg: "bg-primary/12" },
-    { icon: Clock, label: t("police.avgResponse"), value: "5.4m", tint: "text-accent", bg: "bg-accent/12" },
+    { icon: Navigation, label: t("police.activeTourists"), value: tourists.length, tint: "text-accent", bg: "bg-accent/12" },
   ];
 
   const activeSosList = sos.filter((s) => s.status !== "resolved");
@@ -66,10 +68,11 @@ export default function PoliceCommandCenter() {
               zones={zonesAround(position)}
               pois={poisAround(position)}
               sos={activeSosList}
+              tourists={tourists}
               showUser={false}
               height={420}
             />
-            <CrowdHeatmap />
+            <CrowdHeatmap center={position} />
           </div>
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-1">
             <div className="h-[420px]">

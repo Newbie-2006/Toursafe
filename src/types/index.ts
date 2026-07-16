@@ -86,6 +86,7 @@ export interface Officer {
 }
 
 export interface DigitalIdentity {
+  touristId: string;
   fullName: string;
   nationality: string;
   passportNo: string;
@@ -95,10 +96,35 @@ export interface DigitalIdentity {
   insuranceNo: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
+  emergencyNotes?: string;
   photoDataUrl?: string | null;
   verified: boolean;
   issuedAt: string;
   expiresAt: string;
+}
+
+/** A blockchain-anchor step in the (simulated) identity verification ledger. */
+export interface BlockchainStep {
+  label: string;
+  hash: string;
+  at: string;
+  done: boolean;
+}
+
+/**
+ * A live tourist "heartbeat" broadcast from a tourist tab and consumed by the
+ * Police Command Center for the live map + crowd density. `lastSeen` lets
+ * consumers drop stale/offline tourists without a server.
+ */
+export interface TouristPresence {
+  id: string;
+  touristId: string;
+  name: string;
+  nationality?: string;
+  location: LatLng;
+  safetyScore?: number;
+  lastSeen: number;
+  simulated?: boolean;
 }
 
 export interface ChatMessage {

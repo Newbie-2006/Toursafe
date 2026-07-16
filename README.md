@@ -15,8 +15,8 @@ evaluator configures every integration from the UI, with **zero source or `.env`
 - 🆘 **Realtime SOS** — hold-to-activate (3s), animated confirmation, instantly appears in the Police Command Center.
 - 🤖 **AI Safety Assistant** — real **Google Gemini** streaming responses (travel guidance, translation, emergency & medical guidance, lost passport, embassy help). Answers in the selected language.
 - 🗺️ **Google Maps** — current location, safe/caution/danger geo-fenced zones, police, hospitals, embassies, animated markers.
-- 🛡️ **Police Command Center** — a distinct dark "mission control": realtime SOS + incident queues, assign officers, resolve, crowd heatmap, risk analytics (Recharts), resource management, translation center, digital ID verification.
-- 🪪 **Digital Identity** — Apple-Wallet-style card with scannable QR + simulated blockchain verification timeline.
+- 🛡️ **Police Command Center** — a distinct dark "mission control": realtime SOS + incident queues, **live tourist tracking on the map**, **real crowd-density grid computed from tourist positions**, assign officers, resolve, risk analytics (Recharts), resource management, translation center, digital ID verification against issued IDs.
+- 🪪 **Digital Identity** — Apple-Wallet-style card with a **unique per-tourist** TourSafe ID + scannable QR + a **simulated** blockchain verification timeline (unique hashes per tourist).
 - 🌐 **5 languages** — English, Hindi (हिन्दी), Tamil (தமிழ்), Telugu (తెలుగు), Kannada (ಕನ್ನಡ). Persisted across refresh; Gemini replies respect the choice.
 - 🎨 **Handcrafted light & dark themes**, soft neumorphism, 24px radii, Framer Motion micro-interactions.
 - 🧯 **Never crashes** — elegant fallbacks when AI, Maps, or Supabase are not configured.
@@ -39,10 +39,22 @@ a Next.js API route (`/api/ai/chat`) that forwards it **directly to Google**. It
 bundled into the client, never logged, and never committed**. See `src/lib/config.ts` and
 `src/app/api/ai/`.
 
-**How realtime works without Supabase:** SOS and incidents are stored locally and broadcast
-over the browser's `BroadcastChannel` + `localStorage` events, so the Tourist app and the
-Police Command Center stay in sync instantly in the same browser. Configure Supabase to extend
-this to real server persistence and cross-device realtime (`supabase/schema.sql` provided).
+**How realtime works without Supabase:** SOS, incidents, and **live tourist presence**
+(each tourist's ID + moving location + safety score) are broadcast over the browser's
+`BroadcastChannel` + `localStorage` events, so the Tourist app and the Police Command Center
+stay in sync instantly across tabs in the same browser. The **crowd-density grid** and the
+**live tourist markers/count** on the police map are computed from those real presence
+positions — no random values. Configure Supabase to extend this to real server persistence
+and cross-device realtime (`supabase/schema.sql` provided).
+
+**Digital identity is per-tourist:** every signed-in tourist gets a unique, deterministic
+TourSafe ID, passport/visa/insurance, QR payload, and verification ledger derived from their
+account — there is no shared demo persona. The Police "Digital ID Verification" panel checks a
+scanned QR or typed ID against the IDs actually issued on the device.
+
+> ⚠️ **The blockchain workflow is SIMULATED.** The "Blockchain Verification" timeline generates
+> unique hashes and timestamps locally per tourist for demonstration only. Nothing is written to
+> or read from any real blockchain, and no on-chain claims are made.
 
 > **For evaluators:** you do **not** need to touch code or `.env`. Just open the app →
 > **Settings → AI Configuration** → paste a Gemini key → **Test Connection**. Do the same for

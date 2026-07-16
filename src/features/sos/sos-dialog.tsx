@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useData } from "@/features/data/data-provider";
 import { useAuth } from "@/features/auth/auth-provider";
+import { useIdentity } from "@/features/identity/use-identity";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { useGeolocation } from "@/features/location/use-geolocation";
 import { useToast } from "@/components/ui/toast";
@@ -22,6 +23,7 @@ export function SosDialog({ open, onClose }: { open: boolean; onClose: () => voi
   const { t } = useI18n();
   const { createSos, pushAlert } = useData();
   const { session } = useAuth();
+  const { identity } = useIdentity();
   const { position } = useGeolocation();
   const { toast } = useToast();
 
@@ -46,8 +48,8 @@ export function SosDialog({ open, onClose }: { open: boolean; onClose: () => voi
     setPhase("sending");
     setProgress(100);
     createSos({
-      touristName: session?.name ?? TOURIST_PROFILE.name,
-      touristId: TOURIST_PROFILE.touristId,
+      touristName: identity.fullName || session?.name || TOURIST_PROFILE.name,
+      touristId: identity.touristId || TOURIST_PROFILE.touristId,
       location: position,
       message: message.trim() || undefined,
     });
@@ -60,7 +62,7 @@ export function SosDialog({ open, onClose }: { open: boolean; onClose: () => voi
       setPhase("sent");
       toast({ variant: "success", title: t("sos.sent"), description: t("sos.sentBody") });
     }, 1200);
-  }, [createSos, message, position, pushAlert, session?.name, t, toast]);
+  }, [createSos, identity.fullName, identity.touristId, message, position, pushAlert, session?.name, t, toast]);
 
   const startHold = React.useCallback(() => {
     if (phase !== "idle") return;

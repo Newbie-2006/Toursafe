@@ -1,39 +1,57 @@
 "use client";
 
 import * as React from "react";
-import { Flame } from "lucide-react";
+import { Flame, Users } from "lucide-react";
+import { usePresence } from "@/features/presence/presence-provider";
 import { useI18n } from "@/features/i18n/i18n-provider";
-import { cn } from "@/lib/utils";
+import { DEFAULT_CENTER } from "@/lib/demo-data";
+import { clamp, cn } from "@/lib/utils";
+import type { LatLng } from "@/types";
 
-// Deterministic pseudo-density grid that gently animates to feel "live".
-function baseGrid(): number[] {
-  const cells = 48;
-  return Array.from({ length: cells }, (_, i) => {
-    const x = i % 8;
-    const y = Math.floor(i / 8);
-    const centerBias = 1 - (Math.abs(x - 4) + Math.abs(y - 3)) / 10;
-    return Math.max(0.05, Math.min(1, centerBias * (0.6 + ((i * 37) % 40) / 100)));
-  });
+const COLS = 8;
+const ROWS = 6;
+const SPAN = 0.05; // ~5 km half-window around the command-center view
+
+/** Map a coordinate into a grid cell, or null if it's outside the window. */
+function cellIndex(loc: LatLng, center: LatLng): number | null {
+  const west = center.lng - SPAN;
+  const east = center.lng + SPAN;
+  const north = center.lat + SPAN;
+  const south = center.lat - SPAN;
+  if (loc.lng < west || loc.lng > east || loc.lat < south || loc.lat > north) return null;
+  const col = clamp(Math.floor(((loc.lng - west) / (east - west)) * COLS), 0, COLS - 1);
+  const row = clamp(Math.floor(((north - loc.lat) / (north - south)) * ROWS), 0, ROWS - 1);
+  return row * COLS + col;
 }
 
-function intensityColor(v: number): string {
-  if (v > 0.8) return "bg-danger";
-  if (v > 0.6) return "bg-warning";
-  if (v > 0.4) return "bg-accent";
-  if (v > 0.2) return "bg-primary/60";
-  return "bg-primary/20";
+function intensityClass(count: number): string {
+  if (count <= 0) return "bg-muted";
+  if (count === 1) return "bg-success"; // low
+  if (count === 2) return "bg-warning"; // medium
+  return "bg-danger"; // high
 }
 
-export function CrowdHeatmap() {
+/**
+ * Real crowd density: divides the city view into a grid and colours each cell by
+ * how many active tourists are inside it. Updates automatically as tourists move
+ * (driven by live presence heartbeats) — no random values.
+ */
+export function CrowdHeatmap({ center = DEFAULT_CENTER }: { center?: LatLng }) {
   const { t } = useI18n();
-  const [grid, setGrid] = React.useState<number[]>(baseGrid);
+  const { tourists } = usePresence();
 
-  React.useEffect(() => {
-    const id = setInterval(() => {
-      setGrid((prev) => prev.map((v) => cn2(v + (Math.random() - 0.5) * 0.18)));
-    }, 1600);
-    return () => clearInterval(id);
-  }, []);
+  const { grid, inView, hottest } = React.useMemo(() => {
+    const cells = new Array<number>(COLS * ROWS).fill(0);
+    let counted = 0;
+    for (const tourist of tourists) {
+      const idx = cellIndex(tourist.location, center);
+      if (idx !== null) {
+        cells[idx] += 1;
+        counted += 1;
+      }
+    }
+    return { grid: cells, inView: counted, hottest: Math.max(0, ...cells) };
+  }, [tourists, center]);
 
   return (
     <div className="rounded-3xl border border-border/70 bg-card p-5">
@@ -43,24 +61,35 @@ export function CrowdHeatmap() {
           <h3 className="text-sm font-semibold">{t("police.crowdDensity")}</h3>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <span className="size-2 rounded-full bg-primary/40" /> Low
+          <span className="size-2 rounded-full bg-success" /> Low
           <span className="ml-2 size-2 rounded-full bg-warning" /> Med
           <span className="ml-2 size-2 rounded-full bg-danger" /> High
         </div>
       </div>
+
       <div className="grid grid-cols-8 gap-1.5">
-        {grid.map((v, i) => (
+        {grid.map((count, i) => (
           <div
             key={i}
-            className={cn("aspect-square rounded-md transition-colors duration-700", intensityColor(v))}
-            style={{ opacity: 0.35 + v * 0.65 }}
+            title={count > 0 ? `${count} tourist${count > 1 ? "s" : ""}` : "No tourists"}
+            className={cn("aspect-square rounded-md transition-colors duration-500", intensityClass(count))}
+            style={{ opacity: count <= 0 ? 0.3 : 0.55 + Math.min(count, 4) * 0.11 }}
           />
         ))}
       </div>
+
+      <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <Users className="size-3.5" />
+          {inView > 0
+            ? `${inView} tourist${inView > 1 ? "s" : ""} in view · peak ${hottest}/cell`
+            : "No active tourists in view yet"}
+        </span>
+        <span className="relative flex size-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60" />
+          <span className="relative inline-flex size-2 rounded-full bg-success" />
+        </span>
+      </div>
     </div>
   );
-}
-
-function cn2(v: number): number {
-  return Math.max(0.05, Math.min(1, v));
 }

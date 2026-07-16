@@ -8,12 +8,13 @@ import Link from "next/link";
 import { DigitalIdCard } from "@/features/identity/digital-id-card";
 import { useIdentity } from "@/features/identity/use-identity";
 import { useI18n } from "@/features/i18n/i18n-provider";
-import { BLOCKCHAIN_TIMELINE } from "@/lib/demo-data";
+import { blockchainStepsFor } from "@/lib/identity";
 import { cn } from "@/lib/utils";
 
 export default function DigitalIdPage() {
   const { t } = useI18n();
   const { identity } = useIdentity();
+  const blockchainSteps = blockchainStepsFor(identity);
 
   return (
     <div className="space-y-6">
@@ -50,13 +51,13 @@ export default function DigitalIdPage() {
                 <Link2 className="size-5 text-primary" />
                 <h3 className="text-base font-semibold">{t("id.blockchain")}</h3>
               </div>
-              <Badge variant="success">
+              <Badge variant={identity.verified ? "success" : "warning"}>
                 <BadgeCheck className="size-3.5" />
-                {t("id.verified")}
+                {identity.verified ? t("id.verified") : t("id.unverified")}
               </Badge>
             </div>
             <ol className="relative space-y-4 before:absolute before:left-[9px] before:top-2 before:h-[calc(100%-1.5rem)] before:w-px before:bg-border">
-              {BLOCKCHAIN_TIMELINE.map((step) => (
+              {blockchainSteps.map((step) => (
                 <li key={step.hash} className="relative flex gap-3 pl-7">
                   <span
                     className={cn(

@@ -1,7 +1,9 @@
 import { NextRequest } from "next/server";
 import {
   buildSystemPrompt,
+  extractErrorMessage,
   extractText,
+  friendlyGeminiError,
   GEMINI_BASE,
   toGeminiContents,
   type GeminiRequestBody,
@@ -63,18 +65,16 @@ export async function POST(req: NextRequest) {
   }
 
   if (!upstream.ok || !upstream.body) {
-    let detail = "";
+    let raw = "";
     try {
-      const errJson = await upstream.json();
-      detail = extractError(errJson);
+      raw = extractErrorMessage(await upstream.json());
     } catch {
       /* ignore */
     }
-    const status = upstream.status === 400 || upstream.status === 403 ? 401 : 502;
-    return errorResponse(
-      detail || `Gemini request failed (${upstream.status}).`,
-      status,
-    );
+    const friendly = friendlyGeminiError(upstream.status, raw);
+    // Surface auth/quota/model errors to the client as-is; treat 5xx as bad gateway.
+    const status = upstream.status >= 500 ? 502 : upstream.status || 400;
+    return errorResponse(friendly, status);
   }
 
   // Transform Google's SSE stream into a plain-text token stream for the client.
@@ -120,15 +120,4 @@ export async function POST(req: NextRequest) {
       "cache-control": "no-cache, no-transform",
     },
   });
-}
-
-function extractError(payload: unknown): string {
-  try {
-    const msg = (payload as { error?: { message?: string } })?.error?.message;
-    if (!msg) return "";
-    if (/API key not valid/i.test(msg)) return "Invalid API key.";
-    return msg;
-  } catch {
-    return "";
-  }
 }

@@ -14,7 +14,7 @@ import { MapPin, MapPinOff, Loader2 } from "lucide-react";
 import { useConfig } from "@/features/config/config-provider";
 import { LIGHT_MAP_STYLE, DARK_MAP_STYLE } from "./map-styles";
 import { DEFAULT_CENTER, POIS, ZONES } from "@/lib/demo-data";
-import type { LatLng, Poi, SosRequest, Zone } from "@/types";
+import type { LatLng, Poi, SosRequest, TouristPresence, Zone } from "@/types";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { cn } from "@/lib/utils";
@@ -39,6 +39,7 @@ export interface SafetyMapProps {
   zones?: Zone[];
   pois?: Poi[];
   sos?: SosRequest[];
+  tourists?: TouristPresence[];
   height?: string | number;
   className?: string;
   showUser?: boolean;
@@ -82,6 +83,7 @@ function MapInner({
   zones = ZONES,
   pois = POIS,
   sos = [],
+  tourists = [],
   height = 420,
   className,
   showUser = true,
@@ -186,6 +188,19 @@ function MapInner({
           />
         ))}
 
+        {tourists.map((tourist) => (
+          <Marker
+            key={tourist.id}
+            position={tourist.location}
+            title={`${tourist.name} · ${tourist.touristId}${
+              tourist.safetyScore != null ? ` · safety ${tourist.safetyScore}` : ""
+            }`}
+            icon={touristIcon(tourist.simulated)}
+            onClick={() => onMarkerClick?.(tourist.id)}
+            zIndex={500}
+          />
+        ))}
+
         {sos.map((s) => (
           <Marker
             key={s.id}
@@ -242,5 +257,16 @@ function pulseIcon(): google.maps.Symbol {
     strokeColor: "#ffffff",
     strokeWeight: 3,
     scale: 10,
+  };
+}
+
+function touristIcon(simulated?: boolean): google.maps.Symbol {
+  return {
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: simulated ? "#8B93A7" : "#5B8DEF",
+    fillOpacity: 1,
+    strokeColor: "#ffffff",
+    strokeWeight: 2,
+    scale: 6,
   };
 }

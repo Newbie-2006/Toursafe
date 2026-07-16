@@ -180,6 +180,7 @@ export const hi: Partial<Record<TranslationKey, string>> = {
   "police.openIncidents": "खुली घटनाएँ",
   "police.officersAvailable": "उपलब्ध अधिकारी",
   "police.avgResponse": "औसत प्रतिक्रिया",
+  "police.activeTourists": "सक्रिय पर्यटक",
   "police.backToTourist": "पर्यटक ऐप",
 
   "landing.hero": "कहीं भी यात्रा करें। हर जगह सुरक्षित महसूस करें।",

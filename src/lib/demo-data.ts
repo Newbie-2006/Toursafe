@@ -90,6 +90,7 @@ export const SEED_ALERTS: AlertItem[] = [
 ];
 
 export const DEFAULT_IDENTITY: DigitalIdentity = {
+  touristId: "TS-IN-4820",
   fullName: "Aarav Sharma",
   nationality: "India",
   passportNo: "P4820193",
@@ -118,20 +119,6 @@ export const TRAVEL_TIMELINE: TimelineEvent[] = [
   { time: "14:00", title: "Lunch", place: "Connaught Place", status: "current" },
   { time: "16:30", title: "Qutub Minar tour", place: "Mehrauli", status: "upcoming" },
   { time: "20:00", title: "Return to hotel", place: "The Imperial", status: "upcoming" },
-];
-
-export interface BlockchainStep {
-  label: string;
-  hash: string;
-  at: string;
-  done: boolean;
-}
-
-export const BLOCKCHAIN_TIMELINE: BlockchainStep[] = [
-  { label: "Identity created", hash: "0x9f2a…c41b", at: "2026-01-12 09:12", done: true },
-  { label: "Passport verified", hash: "0x7d10…88ea", at: "2026-01-12 09:14", done: true },
-  { label: "Visa cross-checked", hash: "0x3b55…12fc", at: "2026-01-12 09:15", done: true },
-  { label: "On-chain anchor", hash: "0xaa08…9d77", at: "2026-01-12 09:16", done: true },
 ];
 
 export const WEATHER = {

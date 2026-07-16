@@ -17,7 +17,7 @@ export function DigitalIdCard({
   const { t } = useI18n();
 
   const payload = JSON.stringify({
-    id: "TS-IN-4820",
+    id: identity.touristId,
     name: identity.fullName,
     nationality: identity.nationality,
     passport: identity.passportNo,
@@ -59,6 +59,7 @@ export function DigitalIdCard({
         <div>
           <p className="text-xl font-semibold leading-tight">{identity.fullName}</p>
           <p className="text-sm text-white/70">{identity.nationality}</p>
+          <p className="mt-0.5 font-mono text-[11px] tracking-wide text-white/60">{identity.touristId}</p>
         </div>
       </div>
 

@@ -46,6 +46,40 @@ export interface GeminiRequestBody {
   languageName?: string;
 }
 
+/** Pull the raw error message out of a Gemini error payload. */
+export function extractErrorMessage(payload: unknown): string {
+  try {
+    return (payload as { error?: { message?: string } })?.error?.message ?? "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Map an upstream Gemini HTTP status + message to a clear, user-facing string
+ * that covers the failure modes the UI must handle gracefully: invalid/expired
+ * key, no access, rate limit, a removed/unsupported model, and provider errors.
+ */
+export function friendlyGeminiError(status: number, rawMessage = ""): string {
+  const msg = rawMessage.trim();
+  if (/API key not valid|API_KEY_INVALID/i.test(msg)) {
+    return "Invalid API key. Check your Gemini key in Settings → AI Configuration.";
+  }
+  if (status === 401 || status === 403 || /permission|PERMISSION_DENIED/i.test(msg)) {
+    return "Your API key was rejected (invalid, expired, or missing access). Update it in Settings.";
+  }
+  if (status === 429 || /quota|rate limit|RESOURCE_EXHAUSTED/i.test(msg)) {
+    return "Gemini rate limit reached. Please wait a moment and try again.";
+  }
+  if (status === 404 || /is not found|not supported|not found for API/i.test(msg)) {
+    return "That model is no longer available for your key. Pick a different model in Settings.";
+  }
+  if (status >= 500) {
+    return "Gemini is having trouble right now. Please try again shortly.";
+  }
+  return msg || `Gemini request failed (${status}).`;
+}
+
 /** Extract readable text from a full (non-streamed) Gemini response payload. */
 export function extractText(payload: unknown): string {
   try {

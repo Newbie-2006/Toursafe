@@ -180,6 +180,7 @@ export const ta: Partial<Record<TranslationKey, string>> = {
   "police.openIncidents": "திறந்த சம்பவங்கள்",
   "police.officersAvailable": "கிடைக்கும் அதிகாரிகள்",
   "police.avgResponse": "சராசரி பதில்",
+  "police.activeTourists": "செயலில் உள்ள சுற்றுலாப் பயணிகள்",
   "police.backToTourist": "சுற்றுலா ஆப்",
 
   "landing.hero": "எங்கும் பயணியுங்கள். எங்கும் பாதுகாப்பாக உணருங்கள்.",

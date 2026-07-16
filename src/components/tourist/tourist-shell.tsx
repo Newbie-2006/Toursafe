@@ -15,6 +15,7 @@ import { useData } from "@/features/data/data-provider";
 import { useAuth } from "@/features/auth/auth-provider";
 import { useGeolocation } from "@/features/location/use-geolocation";
 import { SosDialog } from "@/features/sos/sos-dialog";
+import { PresenceReporter } from "@/features/presence/presence-reporter";
 import { TOURIST_PROFILE, WEATHER } from "@/lib/demo-data";
 import { formatRelativeTime, cn } from "@/lib/utils";
 
@@ -128,6 +129,7 @@ export function TouristShell({ children }: { children: React.ReactNode }) {
       </button>
 
       <SosDialog open={sosOpen} onClose={() => setSosOpen(false)} />
+      <PresenceReporter />
     </div>
   );
 }

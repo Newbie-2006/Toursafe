@@ -217,6 +217,7 @@ export const en = {
   "police.openIncidents": "Open Incidents",
   "police.officersAvailable": "Officers Available",
   "police.avgResponse": "Avg. Response",
+  "police.activeTourists": "Active Tourists",
   "police.overview": "Operations Overview",
   "police.map": "Live Operations Map",
   "police.noSos": "No active SOS alerts. All clear.",

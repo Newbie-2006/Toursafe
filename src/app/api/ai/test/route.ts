@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { extractText, GEMINI_BASE } from "@/lib/gemini";
+import { extractErrorMessage, extractText, friendlyGeminiError, GEMINI_BASE } from "@/lib/gemini";
 import { DEFAULT_MODEL } from "@/lib/config";
 
 export const runtime = "nodejs";
@@ -42,15 +42,17 @@ export async function POST(req: NextRequest) {
       return json({ ok: true, status: "connected", sample: extractText(payload) || "OK" }, 200);
     }
 
-    let message = `Request failed (${res.status}).`;
+    let raw = "";
     try {
-      const err = await res.json();
-      const m = (err as { error?: { message?: string } })?.error?.message;
-      if (m) message = m;
+      raw = extractErrorMessage(await res.json());
     } catch {
       /* ignore */
     }
-    const invalid = /API key not valid|API_KEY_INVALID|permission/i.test(message);
+    const message = friendlyGeminiError(res.status, raw);
+    const invalid =
+      res.status === 401 ||
+      res.status === 403 ||
+      /API key not valid|API_KEY_INVALID|permission/i.test(raw);
     return json(
       { ok: false, status: invalid ? "invalid" : "disconnected", error: message },
       200,

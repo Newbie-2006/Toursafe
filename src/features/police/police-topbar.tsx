@@ -9,6 +9,7 @@ import { LanguageSelector } from "@/components/language-selector";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useData } from "@/features/data/data-provider";
+import { usePresence } from "@/features/presence/presence-provider";
 import { useAuth } from "@/features/auth/auth-provider";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { useGeolocation } from "@/features/location/use-geolocation";
@@ -26,6 +27,7 @@ export function PoliceTopBar() {
   const { t } = useI18n();
   const router = useRouter();
   const { createSos, createIncident, pushAlert } = useData();
+  const { spawnSimulated } = usePresence();
   const { signOut } = useAuth();
   const { position } = useGeolocation();
   const [clock, setClock] = React.useState("");
@@ -37,11 +39,14 @@ export function PoliceTopBar() {
     return () => clearInterval(id);
   }, []);
 
+  // Officer-triggered readiness drill: populates the live map, crowd density and
+  // queues with SIMULATED activity that flows through the real pipeline.
   const simulate = () => {
     const jitter = () => (Math.random() - 0.5) * 0.03;
+    spawnSimulated(position);
     createSos({
       touristName: ["Liam Carter", "Sofia Rossi", "Kenji Tanaka"][Math.floor(Math.random() * 3)],
-      touristId: uid("TS").toUpperCase(),
+      touristId: `TS-SM-${uid("").replace(/\D/g, "").slice(0, 4).padEnd(4, "0")}`,
       location: { lat: position.lat + jitter(), lng: position.lng + jitter() },
       message: "Need immediate assistance.",
     });

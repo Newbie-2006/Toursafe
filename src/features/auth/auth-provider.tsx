@@ -72,8 +72,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(SESSION_KEY);
-      if (raw) setSession(JSON.parse(raw) as Session);
+      // Per-tab session (sessionStorage) is authoritative so a Tourist tab and a
+      // Police tab can be open in the same browser at once (required for the
+      // BroadcastChannel realtime demo) without clobbering each other. Fall back
+      // to the persisted localStorage session for a fresh tab, and adopt it.
+      const raw =
+        window.sessionStorage.getItem(SESSION_KEY) ?? window.localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        setSession(JSON.parse(raw) as Session);
+        window.sessionStorage.setItem(SESSION_KEY, raw);
+      }
     } catch {
       /* ignore */
     }
@@ -82,8 +90,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const persist = useCallback((next: Session | null) => {
     setSession(next);
-    if (next) window.localStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    else window.localStorage.removeItem(SESSION_KEY);
+    if (next) {
+      const raw = JSON.stringify(next);
+      window.sessionStorage.setItem(SESSION_KEY, raw);
+      window.localStorage.setItem(SESSION_KEY, raw);
+    } else {
+      window.sessionStorage.removeItem(SESSION_KEY);
+      window.localStorage.removeItem(SESSION_KEY);
+    }
   }, []);
 
   const signIn = useCallback<AuthContextValue["signIn"]>(async (email, password, role) => {
