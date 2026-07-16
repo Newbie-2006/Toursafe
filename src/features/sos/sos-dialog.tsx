@@ -7,6 +7,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useData } from "@/features/data/data-provider";
+import { useAuth } from "@/features/auth/auth-provider";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { useGeolocation } from "@/features/location/use-geolocation";
 import { useToast } from "@/components/ui/toast";
@@ -20,6 +21,7 @@ type Phase = "idle" | "holding" | "sending" | "sent";
 export function SosDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
   const { createSos, pushAlert } = useData();
+  const { session } = useAuth();
   const { position } = useGeolocation();
   const { toast } = useToast();
 
@@ -44,7 +46,7 @@ export function SosDialog({ open, onClose }: { open: boolean; onClose: () => voi
     setPhase("sending");
     setProgress(100);
     createSos({
-      touristName: TOURIST_PROFILE.name,
+      touristName: session?.name ?? TOURIST_PROFILE.name,
       touristId: TOURIST_PROFILE.touristId,
       location: position,
       message: message.trim() || undefined,
@@ -58,7 +60,7 @@ export function SosDialog({ open, onClose }: { open: boolean; onClose: () => voi
       setPhase("sent");
       toast({ variant: "success", title: t("sos.sent"), description: t("sos.sentBody") });
     }, 1200);
-  }, [createSos, message, position, pushAlert, t, toast]);
+  }, [createSos, message, position, pushAlert, session?.name, t, toast]);
 
   const startHold = React.useCallback(() => {
     if (phase !== "idle") return;

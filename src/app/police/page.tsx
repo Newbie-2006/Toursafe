@@ -12,11 +12,14 @@ import { IdVerification } from "@/features/police/id-verification";
 import { SafetyMap } from "@/features/map/safety-map";
 import { useData } from "@/features/data/data-provider";
 import { useI18n } from "@/features/i18n/i18n-provider";
+import { useGeolocation } from "@/features/location/use-geolocation";
+import { poisAround, zonesAround } from "@/lib/demo-data";
 import { cn } from "@/lib/utils";
 
 export default function PoliceCommandCenter() {
   const { t } = useI18n();
   const { sos, incidents, officers } = useData();
+  const { position } = useGeolocation();
 
   const activeSos = sos.filter((s) => s.status === "active").length;
   const openIncidents = incidents.filter((i) => i.status !== "resolved").length;
@@ -58,7 +61,14 @@ export default function PoliceCommandCenter() {
         <div className="grid gap-5 xl:grid-cols-3">
           <div className="space-y-3 xl:col-span-2">
             <h2 className="text-sm font-semibold">{t("police.map")}</h2>
-            <SafetyMap sos={activeSosList} showUser={false} height={420} />
+            <SafetyMap
+              center={position}
+              zones={zonesAround(position)}
+              pois={poisAround(position)}
+              sos={activeSosList}
+              showUser={false}
+              height={420}
+            />
             <CrowdHeatmap />
           </div>
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-1">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AuthGuard } from "@/features/auth/auth-guard";
 
 export const metadata: Metadata = {
   title: "Command Center",
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 export default function PoliceLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="dark">
-      <div className="min-h-screen bg-background text-foreground">{children}</div>
+      <div className="min-h-screen bg-background text-foreground">
+        <AuthGuard role="police">{children}</AuthGuard>
+      </div>
     </div>
   );
 }

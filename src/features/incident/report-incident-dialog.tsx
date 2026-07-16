@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { useData } from "@/features/data/data-provider";
+import { useAuth } from "@/features/auth/auth-provider";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { useGeolocation } from "@/features/location/use-geolocation";
 import { useToast } from "@/components/ui/toast";
@@ -34,6 +35,7 @@ const PRIORITIES: Priority[] = ["low", "medium", "high", "critical"];
 export function ReportIncidentDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
   const { createIncident } = useData();
+  const { session } = useAuth();
   const { position } = useGeolocation();
   const { toast } = useToast();
   const [image, setImage] = React.useState<string | null>(null);
@@ -78,7 +80,7 @@ export function ReportIncidentDialog({ open, onClose }: { open: boolean; onClose
       description: values.description,
       address: values.address || undefined,
       location: position,
-      reporterName: TOURIST_PROFILE.name,
+      reporterName: session?.name ?? TOURIST_PROFILE.name,
       imageDataUrl: image,
     });
     setTimeout(() => {

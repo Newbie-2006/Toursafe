@@ -10,7 +10,7 @@ import { SafeRoutePanel } from "@/features/route/safe-route-panel";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { useData } from "@/features/data/data-provider";
 import { useGeolocation } from "@/features/location/use-geolocation";
-import { POIS } from "@/lib/demo-data";
+import { poisAround, zonesAround } from "@/lib/demo-data";
 import { haversineKm, formatDistance, cn } from "@/lib/utils";
 import type { Poi } from "@/types";
 
@@ -25,12 +25,14 @@ export default function MapPage() {
   const { sos } = useData();
   const { position } = useGeolocation();
 
+  const zones = React.useMemo(() => zonesAround(position), [position]);
+  const pois = React.useMemo(() => poisAround(position), [position]);
   const nearby = React.useMemo(
     () =>
-      [...POIS]
+      pois
         .map((p) => ({ ...p, km: haversineKm(position, p.location) }))
         .sort((a, b) => a.km - b.km),
-    [position],
+    [pois, position],
   );
 
   return (
@@ -44,6 +46,8 @@ export default function MapPage() {
         <div className="lg:col-span-2">
           <SafetyMap
             userPosition={position}
+            zones={zones}
+            pois={pois}
             sos={sos.filter((s) => s.status !== "resolved")}
             height="min(68vh, 640px)"
           />

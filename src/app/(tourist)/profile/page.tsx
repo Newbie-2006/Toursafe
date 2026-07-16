@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { HeartPulse, Save, ShieldCheck, User } from "lucide-react";
+import { HeartPulse, LogOut, Save, ShieldCheck, User } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Avatar } from "@/components/ui/avatar";
 import { useIdentity } from "@/features/identity/use-identity";
+import { useAuth } from "@/features/auth/auth-provider";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { useToast } from "@/components/ui/toast";
 import { profileSchema, type ProfileFormValues } from "@/lib/validation";
@@ -18,7 +20,9 @@ import { profileSchema, type ProfileFormValues } from "@/lib/validation";
 export default function ProfilePage() {
   const { t, locale, setLocale, locales } = useI18n();
   const { identity, update } = useIdentity();
+  const { session, signOut } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
   const {
     register,
@@ -47,11 +51,23 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex items-center gap-4">
-        <Avatar name={identity.fullName} src={identity.photoDataUrl} size={64} className="ring-2 ring-border" />
-        <div>
+        <Avatar name={session?.name ?? identity.fullName} src={identity.photoDataUrl} size={64} className="ring-2 ring-border" />
+        <div className="flex-1">
           <h1 className="text-2xl font-semibold tracking-tight">{identity.fullName}</h1>
-          <p className="text-muted-foreground">{identity.nationality}</p>
+          <p className="text-muted-foreground">
+            {session?.email ? `${t("auth.signedInAs")} ${session.email}` : identity.nationality}
+          </p>
         </div>
+        <Button
+          variant="outline"
+          onClick={() => {
+            signOut();
+            router.replace("/login");
+          }}
+        >
+          <LogOut className="size-4" />
+          {t("auth.signOut")}
+        </Button>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-6">

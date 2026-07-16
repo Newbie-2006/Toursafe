@@ -2,12 +2,14 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Radio, Wifi, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, LogOut, Radio, Wifi, Zap } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSelector } from "@/components/language-selector";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useData } from "@/features/data/data-provider";
+import { useAuth } from "@/features/auth/auth-provider";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { useGeolocation } from "@/features/location/use-geolocation";
 import { TOURIST_PROFILE } from "@/lib/demo-data";
@@ -22,7 +24,9 @@ const SIM_INCIDENTS: { title: string; category: IncidentCategory; priority: Prio
 
 export function PoliceTopBar() {
   const { t } = useI18n();
+  const router = useRouter();
   const { createSos, createIncident, pushAlert } = useData();
+  const { signOut } = useAuth();
   const { position } = useGeolocation();
   const [clock, setClock] = React.useState("");
 
@@ -81,6 +85,17 @@ export function PoliceTopBar() {
               <ArrowLeft className="size-4" />
               <span className="hidden sm:inline">{t("police.backToTourist")}</span>
             </Link>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              signOut();
+              router.replace("/login?role=police");
+            }}
+          >
+            <LogOut className="size-4" />
+            <span className="hidden sm:inline">{t("auth.signOut")}</span>
           </Button>
         </div>
       </div>

@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, CloudSun, MapPin, ShieldAlert } from "lucide-react";
+import { Bell, CloudSun, LogOut, MapPin, ShieldAlert } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSelector } from "@/components/language-selector";
@@ -12,6 +12,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { TOURIST_NAV } from "./nav-items";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { useData } from "@/features/data/data-provider";
+import { useAuth } from "@/features/auth/auth-provider";
 import { useGeolocation } from "@/features/location/use-geolocation";
 import { SosDialog } from "@/features/sos/sos-dialog";
 import { TOURIST_PROFILE, WEATHER } from "@/lib/demo-data";
@@ -26,8 +27,15 @@ function greetingKey(): "nav.greetingMorning" | "nav.greetingAfternoon" | "nav.g
 
 export function TouristShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useI18n();
+  const { signOut } = useAuth();
   const [sosOpen, setSosOpen] = React.useState(false);
+
+  const handleSignOut = () => {
+    signOut();
+    router.replace("/login");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -73,6 +81,13 @@ export function TouristShell({ children }: { children: React.ReactNode }) {
             {t("dash.sos")}
           </button>
         </div>
+        <button
+          onClick={handleSignOut}
+          className="mt-2 flex items-center gap-2 rounded-2xl px-3.5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <LogOut className="size-[18px] " />
+          {t("auth.signOut")}
+        </button>
       </aside>
 
       {/* Main column */}
@@ -120,9 +135,11 @@ export function TouristShell({ children }: { children: React.ReactNode }) {
 function TopBar() {
   const { t } = useI18n();
   const { alerts } = useData();
+  const { session } = useAuth();
   const { status } = useGeolocation();
   const [bellOpen, setBellOpen] = React.useState(false);
   const bellRef = React.useRef<HTMLDivElement>(null);
+  const displayName = session?.name ?? TOURIST_PROFILE.name;
 
   React.useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -141,7 +158,7 @@ function TopBar() {
           </Link>
           <div>
             <p className="text-sm font-semibold leading-tight">
-              {t(greetingKey())}, {TOURIST_PROFILE.name.split(" ")[0]}
+              {t(greetingKey())}, {displayName.split(" ")[0]}
             </p>
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
               <MapPin className="size-3" />
@@ -203,7 +220,7 @@ function TopBar() {
           <LanguageSelector />
           <ThemeToggle />
           <Link href="/profile" aria-label={t("nav.profile")}>
-            <Avatar name={TOURIST_PROFILE.name} size={40} className="ring-2 ring-border" />
+            <Avatar name={displayName} size={40} className="ring-2 ring-border" />
           </Link>
         </div>
       </div>

@@ -41,7 +41,7 @@ export default function LandingPage() {
           <LanguageSelector />
           <ThemeToggle />
           <Button asChild size="sm" className="hidden sm:inline-flex">
-            <Link href="/dashboard">{t("landing.getStarted")}</Link>
+            <Link href="/login">{t("landing.getStarted")}</Link>
           </Button>
         </div>
       </header>
@@ -83,13 +83,13 @@ export default function LandingPage() {
             className="mt-8 flex flex-col gap-3 sm:flex-row"
           >
             <Button asChild size="lg">
-              <Link href="/dashboard">
+              <Link href="/login">
                 {t("landing.getStarted")}
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/police">{t("landing.openCommand")}</Link>
+              <Link href="/login?role=police">{t("landing.openCommand")}</Link>
             </Button>
           </motion.div>
         </section>

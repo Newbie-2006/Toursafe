@@ -246,6 +246,27 @@ export const en = {
   "landing.feature3Body": "Know instantly when you enter a safe or high-risk area.",
   "landing.feature4": "Digital Identity",
   "landing.feature4Body": "A secure, verifiable traveler ID — like a passport in your pocket.",
+
+  "auth.welcome": "Welcome to TourSafe",
+  "auth.subtitle": "Sign in to continue, or create an account.",
+  "auth.signIn": "Sign In",
+  "auth.register": "Register",
+  "auth.signOut": "Sign out",
+  "auth.name": "Full name",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.role": "I am a",
+  "auth.roleTourist": "Tourist",
+  "auth.rolePolice": "Police",
+  "auth.touristDesc": "Explore safely with SOS, maps & AI help.",
+  "auth.policeDesc": "Monitor SOS, incidents & operations.",
+  "auth.haveAccount": "Already have an account?",
+  "auth.noAccount": "Don't have an account?",
+  "auth.signInCta": "Sign in",
+  "auth.registerCta": "Create account",
+  "auth.continueGuest": "Continue as guest",
+  "auth.or": "or",
+  "auth.signedInAs": "Signed in as",
 };
 
 export type TranslationKey = keyof typeof en;

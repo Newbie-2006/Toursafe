@@ -33,6 +33,30 @@ export const POIS: Poi[] = [
   { id: "e2", name: "British High Commission", type: "embassy", location: { lat: 28.596, lng: 77.187 } },
 ];
 
+/**
+ * The demo dataset is authored around DEFAULT_CENTER (New Delhi). These helpers
+ * translate it to wherever the user actually is, so "nearest police/hospital"
+ * stay realistic (~1 km) instead of showing thousands of km when the user is
+ * far from Delhi. The relative layout of zones/POIs is preserved.
+ */
+export function poisAround(center: LatLng): Poi[] {
+  const dLat = center.lat - DEFAULT_CENTER.lat;
+  const dLng = center.lng - DEFAULT_CENTER.lng;
+  return POIS.map((p) => ({
+    ...p,
+    location: { lat: p.location.lat + dLat, lng: p.location.lng + dLng },
+  }));
+}
+
+export function zonesAround(center: LatLng): Zone[] {
+  const dLat = center.lat - DEFAULT_CENTER.lat;
+  const dLng = center.lng - DEFAULT_CENTER.lng;
+  return ZONES.map((z) => ({
+    ...z,
+    center: { lat: z.center.lat + dLat, lng: z.center.lng + dLng },
+  }));
+}
+
 export const OFFICERS: Officer[] = [
   { id: "o1", name: "Insp. Meera Nair", badge: "DL-2231", status: "available", zone: "Connaught Place", location: { lat: 28.6312, lng: 77.2185 } },
   { id: "o2", name: "SI Rohan Verma", badge: "DL-4417", status: "available", zone: "India Gate", location: { lat: 28.6135, lng: 77.228 } },

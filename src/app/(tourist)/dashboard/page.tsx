@@ -31,7 +31,7 @@ import { ReportIncidentDialog } from "@/features/incident/report-incident-dialog
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { useData } from "@/features/data/data-provider";
 import { useGeolocation } from "@/features/location/use-geolocation";
-import { POIS, TRAVEL_TIMELINE, WEATHER, ZONES } from "@/lib/demo-data";
+import { TRAVEL_TIMELINE, WEATHER, poisAround, zonesAround } from "@/lib/demo-data";
 import { nearestPoi, riskForLocation, safetyScore, riskColorVar, type RiskLevel } from "@/lib/safety";
 import { formatDistance, formatRelativeTime, cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
@@ -56,10 +56,12 @@ export default function DashboardPage() {
   const [reportOpen, setReportOpen] = React.useState(false);
 
   const activeSos = sos.filter((s) => s.status === "active").length;
-  const risk = riskForLocation(position, ZONES);
+  const zones = React.useMemo(() => zonesAround(position), [position]);
+  const pois = React.useMemo(() => poisAround(position), [position]);
+  const risk = riskForLocation(position, zones);
   const score = safetyScore(risk, activeSos);
-  const police = nearestPoi(position, POIS, "police");
-  const hospital = nearestPoi(position, POIS, "hospital");
+  const police = nearestPoi(position, pois, "police");
+  const hospital = nearestPoi(position, pois, "hospital");
 
   const riskLabel: Record<RiskLevel, TranslationKey> = {
     low: "dash.riskLow",
@@ -146,7 +148,13 @@ export default function DashboardPage() {
               {t("common.viewAll")}
             </Link>
           </div>
-          <SafetyMap userPosition={position} sos={sos.filter((s) => s.status !== "resolved")} height={420} />
+          <SafetyMap
+            userPosition={position}
+            zones={zones}
+            pois={pois}
+            sos={sos.filter((s) => s.status !== "resolved")}
+            height={420}
+          />
           <MapLegend />
         </div>
 
