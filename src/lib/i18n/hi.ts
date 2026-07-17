@@ -66,7 +66,13 @@ export const hi: Partial<Record<TranslationKey, string>> = {
   "map.police": "पुलिस स्टेशन",
   "map.hospital": "अस्पताल",
   "map.embassy": "दूतावास",
+  "map.touristInfo": "पर्यटक सूचना",
+  "map.pharmacy": "फार्मेसी",
+  "map.atmBank": "एटीएम / बैंक",
   "map.notConfigured": "मानचित्र कॉन्फ़िगर नहीं है",
+  "map.unavailable": "मानचित्र अनुपलब्ध",
+  "map.unavailableBody":
+    "लाइव मानचित्र लोड नहीं हो सका। अपनी Google Maps API कुंजी जांचें — Maps JavaScript API सक्षम और बिलिंग सक्रिय होनी चाहिए।",
   "map.notConfiguredBody":
     "लाइव मानचित्र लोड करने के लिए सेटिंग्स में अपनी Google Maps API कुंजी जोड़ें।",
   "map.configure": "मानचित्र कॉन्फ़िगर करें",

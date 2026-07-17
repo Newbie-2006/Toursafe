@@ -66,7 +66,13 @@ export const kn: Partial<Record<TranslationKey, string>> = {
   "map.police": "ಪೊಲೀಸ್ ಠಾಣೆ",
   "map.hospital": "ಆಸ್ಪತ್ರೆ",
   "map.embassy": "ರಾಯಭಾರ ಕಚೇರಿ",
+  "map.touristInfo": "ಪ್ರವಾಸಿ ಮಾಹಿತಿ",
+  "map.pharmacy": "ಔಷಧ ಅಂಗಡಿ",
+  "map.atmBank": "ಎಟಿಎಂ / ಬ್ಯಾಂಕ್",
   "map.notConfigured": "ನಕ್ಷೆ ಕಾನ್ಫಿಗರ್ ಆಗಿಲ್ಲ",
+  "map.unavailable": "ನಕ್ಷೆ ಲಭ್ಯವಿಲ್ಲ",
+  "map.unavailableBody":
+    "ಲೈವ್ ನಕ್ಷೆ ಲೋಡ್ ಆಗಲಿಲ್ಲ. ನಿಮ್ಮ Google Maps API ಕೀ ಪರಿಶೀಲಿಸಿ — Maps JavaScript API ಸಕ್ರಿಯವಾಗಿರಬೇಕು ಮತ್ತು ಬಿಲ್ಲಿಂಗ್ ಸಕ್ರಿಯವಾಗಿರಬೇಕು.",
   "map.notConfiguredBody":
     "ಲೈವ್ ನಕ್ಷೆಯನ್ನು ಲೋಡ್ ಮಾಡಲು ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ನಿಮ್ಮ Google Maps API ಕೀ ಸೇರಿಸಿ.",
   "map.configure": "ನಕ್ಷೆ ಕಾನ್ಫಿಗರ್ ಮಾಡಿ",

@@ -66,7 +66,13 @@ export const ta: Partial<Record<TranslationKey, string>> = {
   "map.police": "காவல் நிலையம்",
   "map.hospital": "மருத்துவமனை",
   "map.embassy": "தூதரகம்",
+  "map.touristInfo": "சுற்றுலா தகவல்",
+  "map.pharmacy": "மருந்தகம்",
+  "map.atmBank": "ஏடிஎம் / வங்கி",
   "map.notConfigured": "வரைபடம் அமைக்கப்படவில்லை",
+  "map.unavailable": "வரைபடம் கிடைக்கவில்லை",
+  "map.unavailableBody":
+    "நேரடி வரைபடத்தை ஏற்ற முடியவில்லை. உங்கள் Google Maps API விசையைச் சரிபார்க்கவும் — Maps JavaScript API இயக்கப்பட்டு பில்லிங் செயலில் இருக்க வேண்டும்.",
   "map.notConfiguredBody":
     "நேரடி வரைபடத்தை ஏற்ற அமைப்புகளில் உங்கள் Google Maps API விசையைச் சேர்க்கவும்.",
   "map.configure": "வரைபடத்தை அமை",

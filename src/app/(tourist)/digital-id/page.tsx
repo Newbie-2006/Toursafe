@@ -1,11 +1,13 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { BadgeCheck, HeartPulse, Link2, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { DigitalIdCard } from "@/features/identity/digital-id-card";
+import { MaskedValue } from "@/components/ui/masked-value";
 import { useIdentity } from "@/features/identity/use-identity";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { blockchainStepsFor } from "@/lib/identity";
@@ -39,9 +41,18 @@ export default function DigitalIdPage() {
             </div>
             <dl className="mt-3 space-y-2 text-sm">
               <Row label={t("id.insurance")} value={identity.insuranceProvider} />
-              <Row label="Policy No." value={identity.insuranceNo} />
-              <Row label={t("id.bloodGroup")} value={identity.bloodGroup} />
-              <Row label={t("id.emergencyContact")} value={`${identity.emergencyContactName} · ${identity.emergencyContactPhone}`} />
+              <Row label="Policy No." value={<MaskedValue value={identity.insuranceNo} />} />
+              <Row label={t("id.bloodGroup")} value={<MaskedValue value={identity.bloodGroup} />} />
+              <Row
+                label={t("id.emergencyContact")}
+                value={
+                  <>
+                    {identity.emergencyContactName || "—"}
+                    {identity.emergencyContactName && identity.emergencyContactPhone ? " · " : ""}
+                    <MaskedValue value={identity.emergencyContactPhone} />
+                  </>
+                }
+              />
             </dl>
           </Card>
 
@@ -84,7 +95,7 @@ export default function DigitalIdPage() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <dt className="text-muted-foreground">{label}</dt>

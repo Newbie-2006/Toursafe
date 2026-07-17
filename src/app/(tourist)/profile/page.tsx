@@ -4,7 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { HeartPulse, LogOut, Save, ShieldCheck, User } from "lucide-react";
+import { Eye, EyeOff, HeartPulse, LogOut, Save, ShieldCheck, User } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,11 @@ export default function ProfilePage() {
   const { session, signOut } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+
+  // Sensitive fields are masked by default; each has its own reveal toggle.
+  const [showPassport, setShowPassport] = React.useState(false);
+  const [showBlood, setShowBlood] = React.useState(false);
+  const [showPhone, setShowPhone] = React.useState(false);
 
   const {
     register,
@@ -83,10 +89,10 @@ export default function ProfilePage() {
               <Input {...register("nationality")} />
             </Field>
             <Field label={t("id.passport")} error={errors.passportNo?.message}>
-              <Input {...register("passportNo")} />
+              <MaskedInput show={showPassport} onToggle={() => setShowPassport((s) => !s)} {...register("passportNo")} />
             </Field>
             <Field label={t("id.bloodGroup")} error={errors.bloodGroup?.message}>
-              <Input {...register("bloodGroup")} />
+              <MaskedInput show={showBlood} onToggle={() => setShowBlood((s) => !s)} {...register("bloodGroup")} />
             </Field>
           </div>
         </Card>
@@ -100,7 +106,7 @@ export default function ProfilePage() {
               <Input {...register("emergencyContactName")} />
             </Field>
             <Field label={`${t("id.emergencyContact")} — Phone`} error={errors.emergencyContactPhone?.message}>
-              <Input {...register("emergencyContactPhone")} />
+              <MaskedInput show={showPhone} onToggle={() => setShowPhone((s) => !s)} {...register("emergencyContactPhone")} />
             </Field>
             <Field label={t("id.insurance")}>
               <Input {...register("insuranceProvider")} />
@@ -151,3 +157,22 @@ function Field({
     </div>
   );
 }
+
+/** A form input for sensitive data, masked by default with a reveal toggle. */
+const MaskedInput = React.forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement> & { show: boolean; onToggle: () => void }
+>(({ show, onToggle, className, ...props }, ref) => (
+  <div className="relative">
+    <Input ref={ref} type={show ? "text" : "password"} className={cn("pr-11", className)} {...props} />
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={show ? "Hide" : "Show"}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+    >
+      {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+    </button>
+  </div>
+));
+MaskedInput.displayName = "MaskedInput";

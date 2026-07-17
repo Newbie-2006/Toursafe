@@ -5,7 +5,6 @@ import { PoliceTopBar } from "@/features/police/police-topbar";
 import { SosQueue } from "@/features/police/sos-queue";
 import { IncidentQueue } from "@/features/police/incident-queue";
 import { PoliceAnalytics } from "@/features/police/police-analytics";
-import { CrowdHeatmap } from "@/features/police/crowd-heatmap";
 import { OfficersPanel } from "@/features/police/officers-panel";
 import { TranslationCenter } from "@/features/police/translation-center";
 import { IdVerification } from "@/features/police/id-verification";
@@ -61,18 +60,21 @@ export default function PoliceCommandCenter() {
 
         {/* Map + queues */}
         <div className="grid gap-5 xl:grid-cols-3">
-          <div className="space-y-3 xl:col-span-2">
+          <div className="flex flex-col space-y-3 xl:col-span-2">
             <h2 className="text-sm font-semibold">{t("police.map")}</h2>
-            <SafetyMap
-              center={position}
-              zones={zonesAround(position)}
-              pois={poisAround(position)}
-              sos={activeSosList}
-              tourists={tourists}
-              showUser={false}
-              height={420}
-            />
-            <CrowdHeatmap center={position} />
+            {/* Map fills the column height so it stays balanced with the two
+                stacked queues on wide screens (no blank space). */}
+            <div className="h-[420px] xl:h-[828px]">
+              <SafetyMap
+                center={position}
+                zones={zonesAround(position)}
+                pois={poisAround(position)}
+                sos={activeSosList}
+                tourists={tourists}
+                showUser={false}
+                height="100%"
+              />
+            </div>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-1">
             <div className="h-[420px]">

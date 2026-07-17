@@ -1,11 +1,15 @@
 "use client";
 
-import { QRCodeSVG } from "qrcode.react";
+
 import { BadgeCheck, Droplet, Phone, ShieldCheck } from "lucide-react";
 import type { DigitalIdentity } from "@/types";
 import { Avatar } from "@/components/ui/avatar";
+import { MaskedValue } from "@/components/ui/masked-value";
 import { useI18n } from "@/features/i18n/i18n-provider";
 import { cn } from "@/lib/utils";
+
+// Eye/EyeOff toggle color tuned for this card's dark gradient background.
+const MASK_BTN = "text-white/60 hover:text-white";
 
 export function DigitalIdCard({
   identity,
@@ -16,14 +20,7 @@ export function DigitalIdCard({
 }) {
   const { t } = useI18n();
 
-  const payload = JSON.stringify({
-    id: identity.touristId,
-    name: identity.fullName,
-    nationality: identity.nationality,
-    passport: identity.passportNo,
-    verified: identity.verified,
-    issued: identity.issuedAt,
-  });
+ 
 
   return (
     <div
@@ -65,23 +62,20 @@ export function DigitalIdCard({
 
       <div className="relative mt-6 flex items-end justify-between gap-4">
         <div className="grid flex-1 grid-cols-2 gap-x-4 gap-y-3 text-sm">
-          <Field label={t("id.passport")} value={identity.passportNo} />
-          <Field label={t("id.visa")} value={identity.visaNo} />
+          <Field label={t("id.passport")} value={<MaskedValue value={identity.passportNo} buttonClassName={MASK_BTN} />} />
+          <Field label={t("id.visa")} value={<MaskedValue value={identity.visaNo} buttonClassName={MASK_BTN} />} />
           <Field
             label={t("id.bloodGroup")}
-            value={identity.bloodGroup}
+            value={<MaskedValue value={identity.bloodGroup} buttonClassName={MASK_BTN} />}
             icon={<Droplet className="size-3.5" />}
           />
           <Field
             label={t("id.emergencyContact")}
-            value={identity.emergencyContactPhone}
+            value={<MaskedValue value={identity.emergencyContactPhone} buttonClassName={MASK_BTN} />}
             icon={<Phone className="size-3.5" />}
           />
         </div>
 
-        <div className="shrink-0 rounded-xl bg-white p-2">
-          <QRCodeSVG value={payload} size={76} bgColor="#ffffff" fgColor="#1f4c40" level="M" />
-        </div>
       </div>
 
       <div className="relative mt-5 flex items-center justify-between border-t border-white/15 pt-3 text-[11px] text-white/60">
@@ -102,7 +96,7 @@ function Field({
   icon,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   icon?: React.ReactNode;
 }) {
   return (

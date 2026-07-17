@@ -18,6 +18,20 @@ export const GEMINI_MODELS = [
 
 export const DEFAULT_MODEL = "gemini-2.5-flash";
 
+/**
+ * Google Maps JavaScript API key — the SOLE source used to initialize the
+ * Maps loader. Read once from NEXT_PUBLIC_GOOGLE_MAPS_API_KEY at build time,
+ * so its value is a stable constant for the entire app lifetime.
+ *
+ * Deliberately NOT sourced from BYOK/localStorage: @react-google-maps/api's
+ * loader is a page-lifetime singleton keyed by `id` — calling it twice with a
+ * different `googleMapsApiKey` (e.g. because a user-editable, localStorage-
+ * backed key changed at runtime) throws "Loader must not be called again with
+ * different options." A build-time constant can never change at runtime, so
+ * the loader is always called with identical options.
+ */
+export const GOOGLE_MAPS_API_KEY = (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "").trim();
+
 export interface AppConfig {
   gemini: { apiKey: string; model: string };
   maps: { apiKey: string; placesApiKey: string };

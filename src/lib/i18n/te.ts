@@ -66,7 +66,13 @@ export const te: Partial<Record<TranslationKey, string>> = {
   "map.police": "పోలీసు స్టేషన్",
   "map.hospital": "ఆసుపత్రి",
   "map.embassy": "రాయబార కార్యాలయం",
+  "map.touristInfo": "పర్యాటక సమాచారం",
+  "map.pharmacy": "ఫార్మసీ",
+  "map.atmBank": "ఏటీఎం / బ్యాంక్",
   "map.notConfigured": "మ్యాప్ కాన్ఫిగర్ చేయబడలేదు",
+  "map.unavailable": "మ్యాప్ అందుబాటులో లేదు",
+  "map.unavailableBody":
+    "లైవ్ మ్యాప్ లోడ్ కాలేదు. మీ Google Maps API కీని తనిఖీ చేయండి — Maps JavaScript API ప్రారంభించి బిల్లింగ్ యాక్టివ్‌గా ఉండాలి.",
   "map.notConfiguredBody":
     "ప్రత్యక్ష మ్యాప్‌ను లోడ్ చేయడానికి సెట్టింగ్‌లలో మీ Google Maps API కీని జోడించండి.",
   "map.configure": "మ్యాప్ కాన్ఫిగర్ చేయండి",

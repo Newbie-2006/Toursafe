@@ -60,3 +60,11 @@ export function uid(prefix = "id"): string {
 export function clamp(n: number, min: number, max: number): number {
   return Math.min(Math.max(n, min), max);
 }
+
+/** Masks a sensitive value for display, revealing only the last few characters. */
+export function maskSensitive(value: string): string {
+  const v = value.trim();
+  if (!v) return "";
+  if (v.length <= 4) return "•".repeat(v.length);
+  return `${"•".repeat(Math.max(2, v.length - 4))}${v.slice(-4)}`;
+}

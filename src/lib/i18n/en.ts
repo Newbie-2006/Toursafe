@@ -68,9 +68,15 @@ export const en = {
   "map.police": "Police Station",
   "map.hospital": "Hospital",
   "map.embassy": "Embassy",
+  "map.touristInfo": "Tourist Info",
+  "map.pharmacy": "Pharmacy",
+  "map.atmBank": "ATM / Bank",
   "map.notConfigured": "Map not configured",
   "map.notConfiguredBody":
     "Add your Google Maps API key in Settings to load the live interactive map.",
+  "map.unavailable": "Map unavailable",
+  "map.unavailableBody":
+    "The live map couldn't load. Check your Google Maps API key — the Maps JavaScript API must be enabled with billing active.",
   "map.configure": "Configure Maps",
   "map.recenter": "Recenter",
 

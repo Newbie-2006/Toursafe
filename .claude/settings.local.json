@@ -11,7 +11,18 @@
       "Bash(git -c user.name=TourSafe -c user.email=toursafe@example.com commit -q -m 'TourSafe: initial commit — full BYOK tourist safety platform *)",
       "Bash(git -c user.name=TourSafe -c user.email=toursafe@example.com commit -q -m 'Add role-based auth \\(login/register + guards + logout\\), fix nearest-POI distances *)",
       "Bash(curl -s -m 20 \"https://nijdtrdjuuoxwvjkwaev.supabase.co/rest/v1/officers?select=id,name\" -H \"apikey: sb_publishable_UT3cpiigo-PTRHmaZz_PiA_Tx9cQNWu\" -H \"Authorization: Bearer sb_publishable_UT3cpiigo-PTRHmaZz_PiA_Tx9cQNWu\")",
-      "Bash(curl -s -m 20 \"https://nijdtrdjuuoxwvjkwaev.supabase.co/rest/v1/tourist_presence?select=tourist_id\" -H \"apikey: sb_publishable_UT3cpiigo-PTRHmaZz_PiA_Tx9cQNWu\" -H \"Authorization: Bearer sb_publishable_UT3cpiigo-PTRHmaZz_PiA_Tx9cQNWu\")"
+      "Bash(curl -s -m 20 \"https://nijdtrdjuuoxwvjkwaev.supabase.co/rest/v1/tourist_presence?select=tourist_id\" -H \"apikey: sb_publishable_UT3cpiigo-PTRHmaZz_PiA_Tx9cQNWu\" -H \"Authorization: Bearer sb_publishable_UT3cpiigo-PTRHmaZz_PiA_Tx9cQNWu\")",
+      "Bash(rm -rf .next)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" -m 60 http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" -m 60 http://localhost:3000/login)",
+      "Bash(curl -s -m 60 http://localhost:3000/)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c.OwningProcess | Select-Object -Unique | ForEach-Object { Write-Output \"Stopping PID $_\"; try { Stop-Process -Id $_ -Force -ErrorAction Stop } catch {} } } else { Write-Output \"Nothing listening on 3000\" })",
+      "PowerShell(Get-CimInstance Win32_Process -Filter \"ProcessId=40176\")",
+      "PowerShell(Stop-Process -Id 40176 -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue)",
+      "PowerShell(try { $c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction Stop; Write-Output \"STILL LISTENING: $\\($c.OwningProcess\\)\" } catch { Write-Output \"PORT 3000 IS FREE\" })",
+      "Bash(git check-ignore *)",
+      "PowerShell(try { $c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction Stop; Write-Output \"LISTENING PID\\(s\\): $\\($c.OwningProcess | Select-Object -Unique\\)\" } catch { Write-Output \"PORT 3000 IS FREE\" })"
     ]
   }
 }

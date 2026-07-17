@@ -11,7 +11,7 @@ import {
   type Libraries,
 } from "@react-google-maps/api";
 import { MapPin, MapPinOff, Loader2 } from "lucide-react";
-import { useConfig } from "@/features/config/config-provider";
+import { GOOGLE_MAPS_API_KEY } from "@/lib/config";
 import { LIGHT_MAP_STYLE, DARK_MAP_STYLE } from "./map-styles";
 import { DEFAULT_CENTER, POIS, ZONES } from "@/lib/demo-data";
 import type { LatLng, Poi, SosRequest, TouristPresence, Zone } from "@/types";
@@ -47,10 +47,9 @@ export interface SafetyMapProps {
 }
 
 export function SafetyMap(props: SafetyMapProps) {
-  const { config, mapsReady } = useConfig();
   const { t } = useI18n();
 
-  if (!mapsReady) {
+  if (!GOOGLE_MAPS_API_KEY) {
     return (
       <div
         className={cn(
@@ -73,11 +72,10 @@ export function SafetyMap(props: SafetyMapProps) {
     );
   }
 
-  return <MapInner key={config.maps.apiKey} apiKey={config.maps.apiKey} {...props} />;
+  return <MapInner {...props} />;
 }
 
 function MapInner({
-  apiKey,
   center,
   userPosition,
   zones = ZONES,
@@ -88,14 +86,27 @@ function MapInner({
   className,
   showUser = true,
   onMarkerClick,
-}: SafetyMapProps & { apiKey: string }) {
+}: SafetyMapProps) {
   const { resolvedTheme } = useTheme();
   const { t } = useI18n();
+  // Single, app-wide loader instance: same `id` + the same constant apiKey on
+  // every mount (dashboard, /map, /police, Settings preview), everywhere.
   const { isLoaded, loadError } = useJsApiLoader({
     id: "toursafe-gmap",
-    googleMapsApiKey: apiKey,
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     libraries: LIBRARIES,
   });
+  // Google calls window.gm_authFailure on an invalid key / disabled API / no
+  // billing. Catch it and show our own clean placeholder instead of Google's
+  // red "Oops! Something went wrong" overlay.
+  const [authFailed, setAuthFailed] = React.useState(false);
+  React.useEffect(() => {
+    const w = window as Window & { gm_authFailure?: () => void };
+    w.gm_authFailure = () => setAuthFailed(true);
+    return () => {
+      w.gm_authFailure = undefined;
+    };
+  }, []);
   const mapRef = React.useRef<google.maps.Map | null>(null);
   const resolvedCenter = center ?? userPosition ?? DEFAULT_CENTER;
 
@@ -116,21 +127,23 @@ function MapInner({
     mapRef.current?.setZoom(14);
   }, [resolvedCenter]);
 
-  if (loadError) {
+  if (loadError || authFailed) {
     return (
       <div
         className={cn(
-          "flex flex-col items-center justify-center gap-3 rounded-3xl border border-border/70 bg-muted/40 p-8 text-center",
+          "flex flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border border-border/70 bg-muted/40 bg-grid p-8 text-center",
           className,
         )}
         style={{ height }}
       >
-        <MapPinOff className="size-7 text-danger" />
-        <p className="text-sm text-muted-foreground">
-          Failed to load Google Maps. Check that your API key is valid and the Maps
-          JavaScript API is enabled.
-        </p>
-        <Button asChild variant="outline" size="sm">
+        <div className="grid size-14 place-items-center rounded-2xl bg-card shadow-soft">
+          <MapPinOff className="size-7 text-muted-foreground" />
+        </div>
+        <div className="max-w-sm space-y-1">
+          <p className="font-semibold">{t("map.unavailable")}</p>
+          <p className="text-sm text-muted-foreground">{t("map.unavailableBody")}</p>
+        </div>
+        <Button asChild variant="primary" size="sm">
           <Link href="/settings/maps">{t("map.configure")}</Link>
         </Button>
       </div>

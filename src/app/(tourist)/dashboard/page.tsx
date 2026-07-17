@@ -13,7 +13,6 @@ import {
   Hospital,
   IdCard,
   Languages,
-  MapPin,
   Route,
   ShieldCheck,
   Siren,
@@ -120,7 +119,7 @@ export default function DashboardPage() {
       {/* Quick actions */}
       <div>
         <h2 className="eyebrow mb-3">{t("dash.quickActions")}</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <QuickAction
             onClick={() => setSosOpen(true)}
             icon={<Siren className="size-6" />}
@@ -132,7 +131,6 @@ export default function DashboardPage() {
             icon={<Compass className="size-6" />}
             label={t("dash.reportIncident")}
           />
-          <QuickAction href="/map" icon={<MapPin className="size-6" />} label={t("dash.nearbyHelp")} />
           <QuickAction href="/map" icon={<Route className="size-6" />} label={t("dash.safeRoute")} />
           <QuickAction href="/assistant" icon={<Languages className="size-6" />} label={t("dash.translate")} />
           <QuickAction href="/digital-id" icon={<IdCard className="size-6" />} label={t("dash.digitalId")} />
